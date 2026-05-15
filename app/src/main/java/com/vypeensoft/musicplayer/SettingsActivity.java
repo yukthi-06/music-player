@@ -1,4 +1,4 @@
-package com.vypeensoft.vypeenmusicplayer;
+package com.vypeensoft.musicplayer;
 
 import android.content.Context;
 import android.content.SharedPreferences;

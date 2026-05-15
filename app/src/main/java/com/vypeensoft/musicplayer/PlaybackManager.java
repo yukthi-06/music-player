@@ -1,4 +1,4 @@
-package com.vypeensoft.vypeenmusicplayer;
+package com.vypeensoft.musicplayer;
 
 import android.media.MediaPlayer;
 import android.util.Log;

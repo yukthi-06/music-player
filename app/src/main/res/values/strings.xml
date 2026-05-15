@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">Vypeen Music Player</string>
-    <string name="nav_header_title">Vypeen Music Player</string>
+    <string name="app_name">MusPlay</string>
+    <string name="nav_header_title">MusPlay</string>
     <string name="nav_header_subtitle">Your music, your way</string>
     
     <!-- Drawer Items -->
@@ -14,8 +14,8 @@
     <string name="bar_playlist">Playlist</string>
 
     <!-- Dummy Text -->
-    <string name="help_content">This is the Vypeen Music Player Help screen.\n\n- Swipe left/right on the bars to navigate.\n- Click on a bar to play its content.\n- Use the drawers for more options.</string>
-    <string name="about_content">Vypeen Music Player v1.0\n\nA clean, gesture-driven music player built with Java.\n\nDeveloped by Antigravity.</string>
+    <string name="help_content">This is the MusPlay Help screen.\n\n- Swipe left/right on the bars to navigate.\n- Click on a bar to play its content.\n- Use the drawers for more options.</string>
+    <string name="about_content">MusPlay v1.0\n\nA clean, gesture-driven music player built with Java.\n\nDeveloped by Antigravity.</string>
     <string name="settings_content">Settings screen placeholder.</string>
 
     <!-- No media found -->

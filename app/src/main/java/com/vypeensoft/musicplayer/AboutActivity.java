@@ -1,4 +1,4 @@
-package com.vypeensoft.vypeenmusicplayer;
+package com.vypeensoft.musicplayer;
 
 import android.os.Bundle;
 import android.widget.TextView;

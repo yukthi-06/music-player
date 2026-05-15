@@ -1,4 +1,4 @@
-package com.vypeensoft.vypeenmusicplayer;
+package com.vypeensoft.musicplayer;
 
 import java.util.ArrayList;
 import java.util.List;

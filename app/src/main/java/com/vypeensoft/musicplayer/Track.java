@@ -1,4 +1,4 @@
-package com.vypeensoft.vypeenmusicplayer;
+package com.vypeensoft.musicplayer;
 
 /**
  * Represents a single MP3 audio track.

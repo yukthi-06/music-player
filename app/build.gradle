@@ -8,7 +8,7 @@ def gitShaFull = 'git rev-parse         HEAD'.execute().text.trim()
 def gitTag     = 'git describe        --tags'.execute().text.trim()
 
 android {
-    namespace 'com.vypeensoft.vypeenmusicplayer'
+    namespace 'com.vypeensoft.musicplayer'
     compileSdk 34
 
     buildFeatures {
@@ -16,7 +16,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.vypeensoft.vypeenmusicplayer"
+        applicationId "com.vypeensoft.musicplayer"
         minSdk 24
         targetSdk 34
         versionCode 1

@@ -18,14 +18,14 @@
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:theme="@style/Theme.VypeenMusicPlayer.AppBarOverlay">
+            android:theme="@style/Theme.MusPlay.AppBarOverlay">
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="?attr/colorPrimary"
-                app_ns:popupTheme="@style/Theme.VypeenMusicPlayer.PopupOverlay" />
+                app_ns:popupTheme="@style/Theme.MusPlay.PopupOverlay" />
 
         </com.google.android.material.appbar.AppBarLayout>
 

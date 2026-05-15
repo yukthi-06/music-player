@@ -18,7 +18,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
         android:gravity="center"
-        android:text="Vypeen Music Player"
+        android:text="MusPlay"
         android:textAppearance="@style/TextAppearance.AppCompat.Large"
         android:textColor="@color/accent_vibrant"
         android:textStyle="bold" />
