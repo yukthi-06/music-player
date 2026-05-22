@@ -47,4 +47,14 @@
         android:textColor="@color/primary_dark"
         android:textStyle="bold" />
 
+    <Button
+        android:id="@+id/btnScanFolders"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Scan Folders"
+        android:backgroundTint="@color/accent_vibrant"
+        android:textColor="@color/primary_dark"
+        android:textStyle="bold" />
+
 </LinearLayout>

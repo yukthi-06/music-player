@@ -33,60 +33,60 @@ public class MediaScanner {
                 }
             }
 
-            ContentResolver contentResolver = context.getContentResolver();
-            Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-            String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
-            String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
-
-            Cursor cursor = contentResolver.query(uri, null, selection, null, sortOrder);
             Map<String, Folder> folderMap = new HashMap<>();
 
-            if (cursor != null && cursor.moveToFirst()) {
-                int titleColumn = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
-                int pathColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA);
+            if (!allowedPaths.isEmpty()) {
+                for (String allowedPath : allowedPaths) {
+                    File rootDir = new File(allowedPath);
+                    if (rootDir.exists() && rootDir.isDirectory()) {
+                        scanDirectoryRecursively(rootDir, folderMap);
+                    }
+                }
+            } else {
+                ContentResolver contentResolver = context.getContentResolver();
+                Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+                String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
+                String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
 
-                do {
-                    String thisTitle = cursor.getString(titleColumn);
-                    String thisPath = cursor.getString(pathColumn);
+                Cursor cursor = contentResolver.query(uri, null, selection, null, sortOrder);
 
-                    boolean isAllowed = true;
-                    if (!allowedPaths.isEmpty()) {
-                        isAllowed = false;
-                        for (String allowedPath : allowedPaths) {
-                            if (thisPath.startsWith(allowedPath)) {
-                                isAllowed = true;
-                                break;
-                            }
+                if (cursor != null && cursor.moveToFirst()) {
+                    int titleColumn = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
+                    int pathColumn = cursor.getColumnIndex(MediaStore.Audio.Media.DATA);
+
+                    do {
+                        String thisTitle = cursor.getString(titleColumn);
+                        String thisPath = cursor.getString(pathColumn);
+
+                        File file = new File(thisPath);
+                        String folderPath = file.getParent();
+                        String folderName = "Unknown";
+                        if (folderPath != null) {
+                            folderName = new File(folderPath).getName();
                         }
-                    }
 
-                    if (!isAllowed) {
-                        continue;
-                    }
+                        Track track = new Track(thisPath, thisTitle, folderPath);
 
-                    File file = new File(thisPath);
-                    String folderPath = file.getParent();
-                    String folderName = "Unknown";
-                    if (folderPath != null) {
-                        folderName = new File(folderPath).getName();
-                    }
+                        Folder folder = folderMap.get(folderPath);
+                        if (folder == null) {
+                            folder = new Folder(folderPath, folderName);
+                            folderMap.put(folderPath, folder);
+                        }
+                        folder.addTrack(track);
 
-                    Track track = new Track(thisPath, thisTitle, folderPath);
-
-                    Folder folder = folderMap.get(folderPath);
-                    if (folder == null) {
-                        folder = new Folder(folderPath, folderName);
-                        folderMap.put(folderPath, folder);
-                    }
-                    folder.addTrack(track);
-
-                } while (cursor.moveToNext());
-                cursor.close();
+                    } while (cursor.moveToNext());
+                    cursor.close();
+                }
             }
 
             List<Folder> folderList = new ArrayList<>(folderMap.values());
             // Sort folders by name
             Collections.sort(folderList, (f1, f2) -> f1.getName().compareToIgnoreCase(f2.getName()));
+
+            // Sort tracks inside each folder alphabetically by track title
+            for (Folder folder : folderList) {
+                Collections.sort(folder.getTracks(), (t1, t2) -> t1.getTitle().compareToIgnoreCase(t2.getTitle()));
+            }
 
             List<Playlist> playlistList = new ArrayList<>();
             Uri filesUri = MediaStore.Files.getContentUri("external");
@@ -136,6 +136,40 @@ public class MediaScanner {
 
             callback.onScanComplete(folderList, playlistList);
         }).start();
+    }
+
+    private static void scanDirectoryRecursively(File dir, Map<String, Folder> folderMap) {
+        File[] files = dir.listFiles();
+        if (files == null) return;
+        for (File file : files) {
+            if (file.isDirectory()) {
+                scanDirectoryRecursively(file, folderMap);
+            } else if (file.isFile()) {
+                String name = file.getName();
+                if (name.toLowerCase().endsWith(".mp3")) {
+                    String filePath = file.getAbsolutePath();
+                    String folderPath = file.getParent();
+                    String folderName = "Unknown";
+                    if (folderPath != null) {
+                        folderName = new File(folderPath).getName();
+                    }
+
+                    // Extract the title from filename by removing .mp3
+                    String title = name;
+                    if (title.toLowerCase().endsWith(".mp3")) {
+                        title = title.substring(0, title.length() - 4);
+                    }
+
+                    Track track = new Track(filePath, title, folderPath);
+                    Folder folder = folderMap.get(folderPath);
+                    if (folder == null) {
+                        folder = new Folder(folderPath, folderName);
+                        folderMap.put(folderPath, folder);
+                    }
+                    folder.addTrack(track);
+                }
+            }
+        }
     }
 
     private static void parsePlaylist(String path, Playlist playlist) {

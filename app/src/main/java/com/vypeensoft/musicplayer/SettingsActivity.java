@@ -26,6 +26,7 @@ public class SettingsActivity extends AppCompatActivity {
         prefs = getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
         etFolderPaths = findViewById(R.id.etFolderPaths);
         Button btnSaveSettings = findViewById(R.id.btnSaveSettings);
+        Button btnScanFolders = findViewById(R.id.btnScanFolders);
 
         // Load existing paths
         String savedPaths = prefs.getString("scan_folders", "");
@@ -36,6 +37,21 @@ public class SettingsActivity extends AppCompatActivity {
             prefs.edit().putString("scan_folders", paths).apply();
             Toast.makeText(this, "Settings saved", Toast.LENGTH_SHORT).show();
             finish();
+        });
+
+        btnScanFolders.setOnClickListener(v -> {
+            String paths = etFolderPaths.getText().toString().trim();
+            prefs.edit().putString("scan_folders", paths).apply();
+            Toast.makeText(this, "Scanning folders...", Toast.LENGTH_SHORT).show();
+            MediaScanner.scanMedia(this, (folderList, playlistList) -> {
+                runOnUiThread(() -> {
+                    int totalTracks = 0;
+                    for (Folder folder : folderList) {
+                        totalTracks += folder.getTracks().size();
+                    }
+                    Toast.makeText(this, "Scan complete! Found " + totalTracks + " tracks in " + folderList.size() + " folders.", Toast.LENGTH_LONG).show();
+                });
+            });
         });
     }
 
