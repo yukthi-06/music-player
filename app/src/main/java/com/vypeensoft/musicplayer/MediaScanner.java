@@ -23,8 +23,7 @@ public class MediaScanner {
 
     public static void scanMedia(Context context, ScanCallback callback) {
         new Thread(() -> {
-            android.content.SharedPreferences prefs = context.getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
-            String savedPaths = prefs.getString("scan_folders", "");
+            String savedPaths = SettingsManager.loadScanFolders();
             String[] rawPaths = savedPaths.split("\n");
             final java.util.List<String> allowedPaths = new java.util.ArrayList<>();
             for (String p : rawPaths) {

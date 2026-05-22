@@ -11,7 +11,6 @@ import androidx.appcompat.app.AppCompatActivity;
 public class SettingsActivity extends AppCompatActivity {
     
     private EditText etFolderPaths;
-    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,25 +22,24 @@ public class SettingsActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Settings");
         }
 
-        prefs = getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
         etFolderPaths = findViewById(R.id.etFolderPaths);
         Button btnSaveSettings = findViewById(R.id.btnSaveSettings);
         Button btnScanFolders = findViewById(R.id.btnScanFolders);
 
-        // Load existing paths
-        String savedPaths = prefs.getString("scan_folders", "");
+        // Load existing paths via SettingsManager
+        String savedPaths = SettingsManager.loadScanFolders();
         etFolderPaths.setText(savedPaths);
 
         btnSaveSettings.setOnClickListener(v -> {
             String paths = etFolderPaths.getText().toString().trim();
-            prefs.edit().putString("scan_folders", paths).apply();
+            SettingsManager.saveScanFolders(paths);
             Toast.makeText(this, "Settings saved", Toast.LENGTH_SHORT).show();
             finish();
         });
 
         btnScanFolders.setOnClickListener(v -> {
             String paths = etFolderPaths.getText().toString().trim();
-            prefs.edit().putString("scan_folders", paths).apply();
+            SettingsManager.saveScanFolders(paths);
             Toast.makeText(this, "Scanning folders...", Toast.LENGTH_SHORT).show();
             MediaScanner.scanMedia(this, (folderList, playlistList) -> {
                 runOnUiThread(() -> {
