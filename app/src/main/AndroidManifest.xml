@@ -24,7 +24,8 @@
 
         <activity android:name=".HelpActivity" android:label="Help" />
         <activity android:name=".AboutActivity" android:label="About" />
-        <activity android:name=".SettingsActivity" android:label="Settings" />
+        <activity android:name=".SettingsActivity" android:label="Folders" />
+        <activity android:name=".GeneralSettingsActivity" android:label="Settings" />
 
     </application>
 

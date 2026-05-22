@@ -637,10 +637,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 this.folders = folderList;
                 this.playlists = playlistList;
                 buildGrandParentList();
-                if (!folders.isEmpty() || !playlists.isEmpty()) {
-                    updateUI();
+                
+                boolean hasSavedState = getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE).contains("saved_active_bar_index");
+                if (hasSavedState) {
+                    restorePlaybackState();
                 } else {
-                    Toast.makeText(this, R.string.no_media_found, Toast.LENGTH_LONG).show();
+                    if (!folders.isEmpty() || !playlists.isEmpty()) {
+                        updateUI();
+                    } else {
+                        Toast.makeText(this, R.string.no_media_found, Toast.LENGTH_LONG).show();
+                    }
                 }
             });
         });
@@ -660,8 +666,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             startActivity(new Intent(this, HelpActivity.class));
         } else if (id == R.id.nav_about) {
             startActivity(new Intent(this, AboutActivity.class));
-        } else if (id == R.id.nav_settings) {
+        } else if (id == R.id.nav_folders) {
              startActivity(new Intent(this, SettingsActivity.class));
+        } else if (id == R.id.nav_settings) {
+             startActivity(new Intent(this, GeneralSettingsActivity.class));
         }
         drawerLayout.closeDrawers();
         return true;
@@ -673,6 +681,128 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (ContextCompat.checkSelfPermission(this, Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU ? Manifest.permission.READ_MEDIA_AUDIO : Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
             loadMedia();
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        savePlaybackState();
+    }
+
+    private void savePlaybackState() {
+        android.content.SharedPreferences prefs = getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
+        boolean rememberState = prefs.getBoolean("remember_playback_state", true);
+        android.content.SharedPreferences.Editor editor = prefs.edit();
+        if (!rememberState) {
+            editor.remove("saved_active_bar_index");
+            editor.remove("saved_playlist_index");
+            editor.remove("saved_grand_parent_index");
+            editor.remove("saved_folder_index");
+            editor.remove("saved_file_index");
+            editor.remove("saved_playback_position");
+            editor.remove("saved_track_path");
+            editor.apply();
+            return;
+        }
+
+        editor.putInt("saved_active_bar_index", activeBarIndex);
+        editor.putInt("saved_playlist_index", currentPlaylistIndex);
+        editor.putInt("saved_grand_parent_index", currentGrandParentIndex);
+        editor.putInt("saved_folder_index", currentFolderIndex);
+        editor.putInt("saved_file_index", currentFileIndex);
+        
+        int position = 0;
+        if (playbackManager != null) {
+            position = playbackManager.getCurrentPosition();
+        }
+        editor.putInt("saved_playback_position", position);
+
+        String trackPath = null;
+        if (!folders.isEmpty() && currentFolderIndex >= 0 && currentFolderIndex < folders.size()) {
+            Folder f = folders.get(currentFolderIndex);
+            if (!f.getTracks().isEmpty() && currentFileIndex >= 0 && currentFileIndex < f.getTracks().size()) {
+                trackPath = f.getTracks().get(currentFileIndex).getPath();
+            }
+        }
+        editor.putString("saved_track_path", trackPath);
+        editor.apply();
+    }
+
+    private void restorePlaybackState() {
+        android.content.SharedPreferences prefs = getSharedPreferences("MusicPlayerPrefs", Context.MODE_PRIVATE);
+        boolean rememberState = prefs.getBoolean("remember_playback_state", true);
+        if (!rememberState) return;
+
+        if (prefs.contains("saved_active_bar_index")) {
+            int savedActiveBar = prefs.getInt("saved_active_bar_index", 0);
+            int savedPlaylist = prefs.getInt("saved_playlist_index", 0);
+            int savedFolder = prefs.getInt("saved_folder_index", 0);
+            int savedFile = prefs.getInt("saved_file_index", 0);
+            int savedPosition = prefs.getInt("saved_playback_position", 0);
+            String savedTrackPath = prefs.getString("saved_track_path", null);
+
+            boolean foundTrack = false;
+            if (savedTrackPath != null) {
+                for (int fIdx = 0; fIdx < folders.size(); fIdx++) {
+                    Folder folder = folders.get(fIdx);
+                    for (int tIdx = 0; tIdx < folder.getTracks().size(); tIdx++) {
+                        if (savedTrackPath.equals(folder.getTracks().get(tIdx).getPath())) {
+                            currentFolderIndex = fIdx;
+                            currentFileIndex = tIdx;
+                            foundTrack = true;
+                            break;
+                        }
+                    }
+                    if (foundTrack) break;
+                }
+            }
+
+            if (!foundTrack) {
+                if (savedFolder >= 0 && savedFolder < folders.size()) {
+                    currentFolderIndex = savedFolder;
+                    Folder f = folders.get(currentFolderIndex);
+                    if (savedFile >= 0 && savedFile < f.getTracks().size()) {
+                        currentFileIndex = savedFile;
+                    } else {
+                        currentFileIndex = 0;
+                    }
+                }
+            }
+
+            if (savedPlaylist >= 0 && savedPlaylist < playlists.size()) {
+                currentPlaylistIndex = savedPlaylist;
+            }
+
+            updateUI();
+            updateActiveBar(savedActiveBar);
+
+            // Now automatically load and play from last position
+            if (!folders.isEmpty() && currentFolderIndex >= 0 && currentFolderIndex < folders.size()) {
+                Folder currentFolder = folders.get(currentFolderIndex);
+                if (!currentFolder.getTracks().isEmpty() && currentFileIndex >= 0 && currentFileIndex < currentFolder.getTracks().size()) {
+                    Track track = currentFolder.getTracks().get(currentFileIndex);
+                    resumePlayback(track, savedPosition);
+                }
+            }
+        }
+    }
+
+    private void resumePlayback(Track track, int position) {
+        playbackManager.play(track.getPath());
+        if (position > 0 && position < playbackManager.getDuration()) {
+            playbackManager.seekTo(position);
+        }
+        updateNowPlaying(track.getTitle());
+        
+        // Setup Seek Bar
+        progressHandler.removeCallbacks(progressUpdater);
+        seekProgress.setMax(playbackManager.getDuration());
+        seekProgress.setProgress(position);
+        txtTotalTime.setText(formatTime(playbackManager.getDuration()));
+        txtCurrentTime.setText(formatTime(position));
+        progressHandler.postDelayed(progressUpdater, 1000);
+        
+        btnPlayPause.setImageResource(R.drawable.ic_pause);
     }
 
     @Override
