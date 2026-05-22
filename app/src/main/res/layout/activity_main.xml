@@ -96,6 +96,65 @@
                     android:src="@drawable/ic_arrow_right" />
             </LinearLayout>
 
+            <!-- Grand Parent Folder Bar -->
+            <LinearLayout
+                android:id="@+id/bar_grand_parent_container"
+                android:layout_width="match_parent"
+                android:layout_height="80dp"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bar_background_selector"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="4dp">
+
+                <ImageButton
+                    android:id="@+id/btn_grand_parent_left"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Previous Grand Parent Folder"
+                    android:src="@drawable/ic_arrow_left" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="GRAND PARENT FOLDER"
+                        android:textColor="@color/accent_vibrant"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:alpha="0.8" />
+
+                    <TextView
+                        android:id="@+id/txt_grand_parent_name"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="No Grand Parent"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Medium"
+                        android:textColor="@color/white"
+                        android:textStyle="bold"
+                        android:maxLines="1"
+                        android:ellipsize="end" />
+                </LinearLayout>
+
+                <ImageButton
+                    android:id="@+id/btn_grand_parent_right"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Next Grand Parent Folder"
+                    android:src="@drawable/ic_arrow_right" />
+            </LinearLayout>
+
             <!-- Folder Bar -->
             <LinearLayout
                 android:id="@+id/bar_folder_container"

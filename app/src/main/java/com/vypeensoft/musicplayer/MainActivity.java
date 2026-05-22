@@ -38,19 +38,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     // UI Components
     private DrawerLayout drawerLayout;
-    private View barFolder, barFile, barPlaylist;
-    private TextView txtFolder, txtFile, txtPlaylist, txtNowPlaying;
+    private View barFolder, barFile, barPlaylist, barGrandParent;
+    private TextView txtFolder, txtFile, txtPlaylist, txtGrandParent, txtNowPlaying;
     
     // Playback and Data
     private PlaybackManager playbackManager;
     private List<Folder> folders = new ArrayList<>();
     private List<Playlist> playlists = new ArrayList<>();
+    private List<String> grandParents = new ArrayList<>();
     
     private int currentFolderIndex = 0;
     private int currentFileIndex = 0;
     private int currentPlaylistIndex = 0;
+    private int currentGrandParentIndex = -1;
     
-    // Selection state: 0=Folder, 1=File, 2=Playlist
+    // Selection state: 0=Folder, 1=File, 2=Playlist, 3=GrandParent
     private int activeBarIndex = 0;
 
     // New UI Components for Controls
@@ -112,10 +114,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         barFolder = findViewById(R.id.bar_folder_container);
         barFile = findViewById(R.id.bar_file_container);
         barPlaylist = findViewById(R.id.bar_playlist_container);
+        barGrandParent = findViewById(R.id.bar_grand_parent_container);
 
         txtFolder = findViewById(R.id.txt_folder_name);
         txtFile = findViewById(R.id.txt_file_name);
         txtPlaylist = findViewById(R.id.txt_playlist_name);
+        txtGrandParent = findViewById(R.id.txt_grand_parent_name);
         txtNowPlaying = findViewById(R.id.txt_now_playing);
 
         // Control Panel Views
@@ -171,10 +175,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return playlistDetector.onTouchEvent(event);
         });
 
+        // Grand Parent Bar Gestures
+        GestureDetector grandParentDetector = new GestureDetector(this, new GestureListener(new GestureListener.SwipeCallback() {
+            @Override
+            public void onSwipeLeft() { nextGrandParent(); }
+            @Override
+            public void onSwipeRight() { prevGrandParent(); }
+        }));
+        barGrandParent.setOnTouchListener((v, event) -> {
+            setActiveBar(3);
+            return grandParentDetector.onTouchEvent(event);
+        });
+
         // Clicks for play selection
         barFolder.setOnClickListener(v -> playCurrentFolder());
         barFile.setOnClickListener(v -> playCurrentFile());
         barPlaylist.setOnClickListener(v -> playCurrentPlaylist());
+        barGrandParent.setOnClickListener(v -> playCurrentFolder());
     }
 
     private void setupButtonListeners() {
@@ -186,6 +203,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         
         findViewById(R.id.btn_playlist_left).setOnClickListener(v -> prevPlaylist());
         findViewById(R.id.btn_playlist_right).setOnClickListener(v -> nextPlaylist());
+
+        findViewById(R.id.btn_grand_parent_left).setOnClickListener(v -> prevGrandParent());
+        findViewById(R.id.btn_grand_parent_right).setOnClickListener(v -> nextGrandParent());
     }
 
     private void setupControlListeners() {
@@ -253,6 +273,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         barFolder.setSelected(index == 0);
         barFile.setSelected(index == 1);
         barPlaylist.setSelected(index == 2);
+        barGrandParent.setSelected(index == 3);
     }
 
     // --- Navigation Logic ---
@@ -415,6 +436,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void updateUI() {
+        updateGrandParentIndexFromFolder();
+        if (currentGrandParentIndex >= 0 && currentGrandParentIndex < grandParents.size()) {
+            String gpPath = grandParents.get(currentGrandParentIndex);
+            String gpName = new java.io.File(gpPath).getName();
+            if (gpName == null || gpName.isEmpty()) gpName = gpPath;
+            txtGrandParent.setText(gpName);
+        } else {
+            txtGrandParent.setText("No Grand Parent");
+        }
+
         if (!folders.isEmpty()) {
             Folder f = folders.get(currentFolderIndex);
             txtFolder.setText(f.getName());
@@ -426,6 +457,70 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         if (!playlists.isEmpty()) {
             txtPlaylist.setText(playlists.get(currentPlaylistIndex).getName());
+        }
+    }
+
+    private void buildGrandParentList() {
+        grandParents.clear();
+        for (Folder f : folders) {
+            String path = f.getPath();
+            if (path != null) {
+                java.io.File parentFile = new java.io.File(path).getParentFile();
+                if (parentFile != null) {
+                    String gpPath = parentFile.getAbsolutePath();
+                    if (!grandParents.contains(gpPath)) {
+                        grandParents.add(gpPath);
+                    }
+                }
+            }
+        }
+        updateGrandParentIndexFromFolder();
+    }
+
+    private void updateGrandParentIndexFromFolder() {
+        if (folders.isEmpty() || currentFolderIndex >= folders.size()) {
+            currentGrandParentIndex = -1;
+            return;
+        }
+        Folder f = folders.get(currentFolderIndex);
+        String path = f.getPath();
+        if (path != null) {
+            java.io.File parentFile = new java.io.File(path).getParentFile();
+            if (parentFile != null) {
+                String gpPath = parentFile.getAbsolutePath();
+                currentGrandParentIndex = grandParents.indexOf(gpPath);
+            }
+        }
+    }
+
+    private void nextGrandParent() {
+        if (grandParents.isEmpty()) return;
+        currentGrandParentIndex = (currentGrandParentIndex + 1) % grandParents.size();
+        selectFolderFromGrandParent();
+    }
+
+    private void prevGrandParent() {
+        if (grandParents.isEmpty()) return;
+        currentGrandParentIndex = (currentGrandParentIndex - 1 + grandParents.size()) % grandParents.size();
+        selectFolderFromGrandParent();
+    }
+
+    private void selectFolderFromGrandParent() {
+        if (currentGrandParentIndex < 0 || currentGrandParentIndex >= grandParents.size()) return;
+        String gpPath = grandParents.get(currentGrandParentIndex);
+        for (int i = 0; i < folders.size(); i++) {
+            Folder f = folders.get(i);
+            String path = f.getPath();
+            if (path != null) {
+                java.io.File parentFile = new java.io.File(path).getParentFile();
+                if (parentFile != null && gpPath.equals(parentFile.getAbsolutePath())) {
+                    currentFolderIndex = i;
+                    currentFileIndex = 0;
+                    updateUI();
+                    playCurrentFolder();
+                    break;
+                }
+            }
         }
     }
 
@@ -464,6 +559,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             runOnUiThread(() -> {
                 this.folders = folderList;
                 this.playlists = playlistList;
+                buildGrandParentList();
                 if (!folders.isEmpty() || !playlists.isEmpty()) {
                     updateUI();
                 } else {
