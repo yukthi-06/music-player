@@ -616,6 +616,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{permission}, PERMISSION_REQUEST_CODE);
         } else {
+            // Check MANAGE_EXTERNAL_STORAGE for Android 11+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (!android.os.Environment.isExternalStorageManager()) {
+                    try {
+                        Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                        intent.addCategory("android.intent.category.DEFAULT");
+                        intent.setData(android.net.Uri.parse(String.format("package:%s", getPackageName())));
+                        startActivity(intent);
+                    } catch (Exception e) {
+                        Intent intent = new Intent();
+                        intent.setAction(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                        startActivity(intent);
+                    }
+                }
+            }
             loadMedia();
         }
     }
@@ -625,6 +640,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    if (!android.os.Environment.isExternalStorageManager()) {
+                        try {
+                            Intent intent = new Intent(android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+                            intent.addCategory("android.intent.category.DEFAULT");
+                            intent.setData(android.net.Uri.parse(String.format("package:%s", getPackageName())));
+                            startActivity(intent);
+                        } catch (Exception e) {
+                            Intent intent = new Intent();
+                            intent.setAction(android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                            startActivity(intent);
+                        }
+                    }
+                }
                 loadMedia();
             } else {
                 Toast.makeText(this, R.string.permission_denied, Toast.LENGTH_LONG).show();
