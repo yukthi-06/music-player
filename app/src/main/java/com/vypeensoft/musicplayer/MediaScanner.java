@@ -33,6 +33,7 @@ public class MediaScanner {
                 }
             }
 
+            ContentResolver contentResolver = context.getContentResolver();
             Map<String, Folder> folderMap = new HashMap<>();
 
             if (!allowedPaths.isEmpty()) {
@@ -43,7 +44,6 @@ public class MediaScanner {
                     }
                 }
             } else {
-                ContentResolver contentResolver = context.getContentResolver();
                 Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
                 String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
                 String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
