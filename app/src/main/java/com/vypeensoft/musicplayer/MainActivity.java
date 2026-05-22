@@ -280,7 +280,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void nextFolder() {
         if (folders.isEmpty()) return;
-        currentFolderIndex = (currentFolderIndex + 1) % folders.size();
+        String currentGpPath = getGrandParentPath(currentFolderIndex);
+        if (currentGpPath == null) {
+            currentFolderIndex = (currentFolderIndex + 1) % folders.size();
+        } else {
+            java.util.List<Integer> siblings = getSiblingIndices(currentGpPath);
+            int subIndex = siblings.indexOf(currentFolderIndex);
+            if (subIndex != -1) {
+                int nextSub = (subIndex + 1) % siblings.size();
+                currentFolderIndex = siblings.get(nextSub);
+            } else {
+                currentFolderIndex = (currentFolderIndex + 1) % folders.size();
+            }
+        }
         currentFileIndex = 0;
         updateUI();
         playCurrentFolder();
@@ -288,7 +300,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void prevFolder() {
         if (folders.isEmpty()) return;
-        currentFolderIndex = (currentFolderIndex - 1 + folders.size()) % folders.size();
+        String currentGpPath = getGrandParentPath(currentFolderIndex);
+        if (currentGpPath == null) {
+            currentFolderIndex = (currentFolderIndex - 1 + folders.size()) % folders.size();
+        } else {
+            java.util.List<Integer> siblings = getSiblingIndices(currentGpPath);
+            int subIndex = siblings.indexOf(currentFolderIndex);
+            if (subIndex != -1) {
+                int prevSub = (subIndex - 1 + siblings.size()) % siblings.size();
+                currentFolderIndex = siblings.get(prevSub);
+            } else {
+                currentFolderIndex = (currentFolderIndex - 1 + folders.size()) % folders.size();
+            }
+        }
         currentFileIndex = 0;
         updateUI();
         playCurrentFolder();
@@ -304,7 +328,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (currentFileIndex < currentFolder.getTracks().size() - 1) {
                 currentFileIndex++;
             } else {
-                currentFolderIndex = (currentFolderIndex + 1) % folders.size();
+                String gpPath = getGrandParentPath(currentFolderIndex);
+                if (gpPath != null) {
+                    java.util.List<Integer> siblings = getSiblingIndices(gpPath);
+                    int subIndex = siblings.indexOf(currentFolderIndex);
+                    if (subIndex != -1) {
+                        int nextSub = (subIndex + 1) % siblings.size();
+                        currentFolderIndex = siblings.get(nextSub);
+                    } else {
+                        currentFolderIndex = (currentFolderIndex + 1) % folders.size();
+                    }
+                } else {
+                    currentFolderIndex = (currentFolderIndex + 1) % folders.size();
+                }
                 currentFileIndex = 0;
             }
             updateUI();
@@ -321,12 +357,53 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (currentFileIndex > 0) {
                 currentFileIndex--;
             } else {
-                currentFolderIndex = (currentFolderIndex - 1 + folders.size()) % folders.size();
+                String gpPath = getGrandParentPath(currentFolderIndex);
+                if (gpPath != null) {
+                    java.util.List<Integer> siblings = getSiblingIndices(gpPath);
+                    int subIndex = siblings.indexOf(currentFolderIndex);
+                    if (subIndex != -1) {
+                        int prevSub = (subIndex - 1 + siblings.size()) % siblings.size();
+                        currentFolderIndex = siblings.get(prevSub);
+                    } else {
+                        currentFolderIndex = (currentFolderIndex - 1 + folders.size()) % folders.size();
+                    }
+                } else {
+                    currentFolderIndex = (currentFolderIndex - 1 + folders.size()) % folders.size();
+                }
                 currentFileIndex = folders.get(currentFolderIndex).getTracks().size() - 1;
             }
             updateUI();
             playCurrentFile();
         }
+    }
+
+    private String getGrandParentPath(int folderIdx) {
+        if (folderIdx < 0 || folderIdx >= folders.size()) return null;
+        Folder f = folders.get(folderIdx);
+        String path = f.getPath();
+        if (path != null) {
+            java.io.File parentFile = new java.io.File(path).getParentFile();
+            if (parentFile != null) {
+                return parentFile.getAbsolutePath();
+            }
+        }
+        return null;
+    }
+
+    private java.util.List<Integer> getSiblingIndices(String gpPath) {
+        java.util.List<Integer> indices = new java.util.ArrayList<>();
+        if (gpPath == null) return indices;
+        for (int i = 0; i < folders.size(); i++) {
+            Folder f = folders.get(i);
+            String path = f.getPath();
+            if (path != null) {
+                java.io.File parentFile = new java.io.File(path).getParentFile();
+                if (parentFile != null && gpPath.equals(parentFile.getAbsolutePath())) {
+                    indices.add(i);
+                }
+            }
+        }
+        return indices;
     }
 
     private void nextPlaylist() {
