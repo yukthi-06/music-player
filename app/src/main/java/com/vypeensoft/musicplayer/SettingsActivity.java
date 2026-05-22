@@ -19,7 +19,7 @@ public class SettingsActivity extends AppCompatActivity {
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setTitle("Settings");
+            getSupportActionBar().setTitle("Folders...");
         }
 
         etFolderPaths = findViewById(R.id.etFolderPaths);
