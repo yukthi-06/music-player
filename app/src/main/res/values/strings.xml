@@ -17,6 +17,8 @@
     <!-- Dummy Text -->
     <string name="help_content">This is the MusPlay Help screen.\n\n- Swipe left/right on the bars to navigate.\n- Click on a bar to play its content.\n- Use the drawers for more options.</string>
     <string name="about_content">MusPlay v1.0\n\nA clean, gesture-driven music player built with Java.\n\nDeveloped by Antigravity.</string>
+    <string name="title_about">About MusPlay</string>
+    <string name="about_description">\n\nA clean, gesture-driven music player built with Java.\n\nDeveloped by Antigravity.</string>
     <string name="settings_content">Settings screen placeholder.</string>
 
     <!-- No media found -->
