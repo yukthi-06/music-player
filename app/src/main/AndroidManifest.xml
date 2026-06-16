@@ -18,17 +18,18 @@
         
         <activity
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="fullSensor">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity android:name=".HelpActivity" android:label="Help" />
-        <activity android:name=".AboutActivity" android:label="About" />
-        <activity android:name=".SettingsActivity" android:label="Folders" />
-        <activity android:name=".GeneralSettingsActivity" android:label="Settings" />
+        <activity android:name=".HelpActivity" android:label="Help" android:screenOrientation="fullSensor" />
+        <activity android:name=".AboutActivity" android:label="About" android:screenOrientation="fullSensor" />
+        <activity android:name=".SettingsActivity" android:label="Folders" android:screenOrientation="fullSensor" />
+        <activity android:name=".GeneralSettingsActivity" android:label="Settings" android:screenOrientation="fullSensor" />
 
     </application>
 
